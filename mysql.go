@@ -74,7 +74,6 @@ func (mysql *luaMySQL) Stop(L *lua.LState) int {
 	return 1
 }
 
-
 func (mysql *luaMySQL) Query(L *lua.LState)   int { return query(L , mysql.db , mysql.opts) }
 func (mysql *luaMySQL) Exec(L *lua.LState)    int { return exec(L , mysql.db , mysql.opts)  }
 func (mysql *luaMySQL) Command(L *lua.LState) int { return command(L , mysql.db)            }

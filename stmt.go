@@ -24,16 +24,9 @@ func newLuaStmt(L *lua.LState , sqlDB *sql.DB) int {
 		return 2
 	}
 
-	st := &luaStmt{s:s , d:sqlDB}
-	st.initMeta()
+	st := &luaStmt{s:s , d:sqlDB , meta: lua.NewUserKV()}
 	L.Push(L.NewAnyData(st))
 	return 1
-}
-
-func (s *luaStmt) initMeta() {
-	s.meta.Set("Query" , lua.NewFunction(s.query))
-	s.meta.Set("Exec" , lua.NewFunction(s.exec))
-	s.meta.Set("Close" , lua.NewFunction(s.close))
 }
 
 func (s *luaStmt) query(L *lua.LState) int {
@@ -66,12 +59,12 @@ func (s *luaStmt) exec(L *lua.LState) int {
 		L.Push(lua.LString(err.Error()))
 		return 2
 	}
-	result := L.NewTable()
-	if id, err := sqlResult.LastInsertId(); err == nil {
-		result.RawSetString(`last_insert_id`, lua.LNumber(id))
+	result := lua.NewUserKV()
+	if id, e := sqlResult.LastInsertId(); e == nil {
+		result.Set(`last_insert_id`, lua.LNumber(id))
 	}
-	if aff, err := sqlResult.RowsAffected(); err == nil {
-		result.RawSetString(`rows_affected`, lua.LNumber(aff))
+	if aff, e := sqlResult.RowsAffected(); e == nil {
+		result.Set(`rows_affected`, lua.LNumber(aff))
 	}
 	L.Push(result)
 	return 1
@@ -85,9 +78,31 @@ func (s *luaStmt) close(L *lua.LState) int {
 	return 0
 }
 
+func (s *luaStmt) Get(L *lua.LState , key string) lua.LValue {
+
+	if lv := s.meta.Get(key); lv != lua.LNil {
+		return lv
+	}
+
+	var fn *lua.LFunction
+	switch key {
+	case "Exec":
+		fn = L.NewFunction(s.exec)
+	case "Query":
+		fn = L.NewFunction(s.query)
+	case "Close":
+		fn = L.NewFunction(s.close)
+	default:
+		return lua.LNil
+	}
+
+	s.meta.Set(key , fn)
+	return fn
+}
+
 func getSTMTArgs(L *lua.LState) []interface{} {
 	args := make([]interface{}, 0)
-	for i := 2; i <= L.GetTop(); i++ {
+	for i := 1; i <= L.GetTop(); i++ {
 		any := L.CheckAny(i)
 		switch any.Type() {
 		case lua.LTNil:
