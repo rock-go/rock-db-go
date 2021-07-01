@@ -24,6 +24,5 @@ func newConfig(L *lua.LState) *config {
 }
 
 func (cfg *config) verify() error {
-
 	return nil
 }

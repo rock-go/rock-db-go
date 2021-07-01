@@ -7,6 +7,7 @@ import (
 
 
 type dbx interface {
+	open(*config) (dbx , error)
 	Query(L *lua.LState)   int
 	Exec(L *lua.LState)    int
 	Stmt(L *lua.LState)    int
@@ -37,7 +38,3 @@ func Open(L *lua.LState) int {
 	L.Push(L.NewAnyData(db))
 	return 1
 }
-
-
-
-

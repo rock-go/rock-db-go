@@ -19,9 +19,8 @@ func newLuaStmt(L *lua.LState , sqlDB *sql.DB) int {
 
 	s , err := sqlDB.Prepare(str)
 	if err != nil {
-		L.Push(lua.LNil)
-		L.Push(lua.LString(err.Error()))
-		return 2
+		L.RaiseError("db stmt %v" , err)
+		return 0
 	}
 
 	st := &luaStmt{s:s , d:sqlDB , meta: lua.NewUserKV()}
