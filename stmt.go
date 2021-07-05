@@ -36,18 +36,7 @@ func (s *luaStmt) query(L *lua.LState) int {
 		L.Push(lua.LString(err.Error()))
 		return 2
 	}
-	defer sqlRows.Close()
-	rows, columns, err := parseRows(sqlRows, L)
-	if err != nil {
-		L.Push(lua.LNil)
-		L.Push(lua.LString(err.Error()))
-		return 2
-	}
-	result := lua.NewUserKV()
-	result.Set(`rows`, rows)
-	result.Set(`columns`, columns)
-	L.Push(result)
-	return 1
+	return newLuaRows(L , sqlRows , err)
 }
 
 func (s *luaStmt) exec(L *lua.LState) int {
@@ -60,10 +49,10 @@ func (s *luaStmt) exec(L *lua.LState) int {
 	}
 	result := lua.NewUserKV()
 	if id, e := sqlResult.LastInsertId(); e == nil {
-		result.Set(`last_insert_id`, lua.LNumber(id))
+		result.Set(`id`, lua.LNumber(id))
 	}
 	if aff, e := sqlResult.RowsAffected(); e == nil {
-		result.Set(`rows_affected`, lua.LNumber(aff))
+		result.Set(`affected`, lua.LNumber(aff))
 	}
 	L.Push(result)
 	return 1
