@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"github.com/rock-go/rock/lua"
 	"github.com/rock-go/rock/xcall"
-	"github.com/lib/pq"
+	"time"
+	"encoding/json"
 )
 
 type row map[string]interface{}
@@ -39,30 +40,47 @@ func newLuaRows(L *lua.LState , data *sql.Rows , e error) int {
 
 func (r *row) DisableReflect() {}
 
+func (r *row) Set(L *lua.LState , key string , val lua.LValue) {
+	(*r)[key] = val
+}
+
 func (r *row) Get(L *lua.LState , key string ) lua.LValue {
 	val , ok := (*r)[key]
 	if !ok {
 		return lua.LNil
 	}
-	converted := val.([]uint8)
-
-	arr := make([]string , 0)
-	pqArr := pq.Array(&arr)
-	err := pqArr.Scan(converted)
-	if err != nil {
+	switch converted := val.(type) {
+	case lua.LValue:
+		return converted
+	case string:
 		return lua.LString(converted)
-	}
-	tab := L.NewTable()
-	for _ , v := range arr {
-		tab.Append(lua.LString(v))
+	case float32:
+		return lua.LNumber(converted)
+	case float64:
+		return lua.LNumber(converted)
+	case int:
+		return lua.LNumber(converted)
+	case int64:
+		return lua.LNumber(converted)
+	case bool:
+		return lua.LBool(converted)
+	case []string:
+		tab := L.NewTable()
+		for _ , v := range converted {
+			tab.Append(lua.LString(v))
+		}
+		return tab
+
+	case time.Time:
+		tt := float64(converted.UTC().UnixNano()) / float64(time.Second)
+		return lua.LNumber(tt)
+
+	default:
+		return lua.LNil
 	}
 
-	return tab
 }
 
-func (r *row) Set(L *lua.LState , key string , val lua.LValue) {
-	(*r)[key] = val
-}
 
 func (x *xRows) parse(L *lua.LState) {
 	cols , err := x.data.Columns()
@@ -98,7 +116,18 @@ func (x *xRows) parse(L *lua.LState) {
 
 		r := make(row , n)
 		for i , key := range cols {
-			 r[key] =  *(ptrs[i].(*interface{}))
+			 v :=  *(ptrs[i].(*interface{}))
+			 converted , ok := v.([]uint8)
+			 if ok {
+			 	arr , e := toArr(converted)
+			 	if e != nil {
+					r[key] = string(converted)
+				} else{
+					r[key] = arr
+				}
+				continue
+			 }
+			 r[key] = v
 		}
 		rows = append(rows, r)
 	}
@@ -174,4 +203,8 @@ func (x *xRows) tryCatch(L *lua.LState) int {
 	}
 	L.RaiseError("%v" , x.err)
 	return 0
+}
+
+func (x *xRows) ToJson() ([]byte , error) {
+	return json.Marshal(x.rows)
 }

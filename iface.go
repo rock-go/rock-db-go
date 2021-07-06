@@ -8,10 +8,10 @@ import (
 
 type dbx interface {
 	open(*config) (dbx , error)
-	Query(L *lua.LState)   int
-	Exec(L *lua.LState)    int
-	Stmt(L *lua.LState)    int
-	Command(L *lua.LState) int
+	//Query(L *lua.LState)   int
+	//Exec(L *lua.LState)    int
+	//Stmt(L *lua.LState)    int
+	//Command(L *lua.LState) int
 	Stop(L *lua.LState)    int
 }
 

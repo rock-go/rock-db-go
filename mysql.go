@@ -101,24 +101,27 @@ func (mysql *luaMySQL) Stop(L *lua.LState) int {
 	return 1
 }
 
-func (mysql *luaMySQL) Query(L *lua.LState)   int {
-	mysql.RLock()
-	ret := query(L , mysql.db , mysql.opts)
-	mysql.RUnlock()
-	return ret
-}
-func (mysql *luaMySQL) Exec(L *lua.LState)    int {
-	mysql.RLock()
-	ret := exec(L , mysql.db , mysql.opts)
-	mysql.RUnlock()
-	return ret
-}
-func (mysql *luaMySQL) Command(L *lua.LState) int {
-	mysql.RLock()
-	ret := command(L , mysql.db)
-	mysql.RUnlock()
-	return ret
-}
+//func (mysql *luaMySQL) Query(L *lua.LState)   int {
+//	mysql.RLock()
+//	ret := query(L , mysql.db , mysql.opts)
+//	mysql.RUnlock()
+//	return ret
+//}
+//
+//func (mysql *luaMySQL) Exec(L *lua.LState)    int {
+//	mysql.RLock()
+//	ret := exec(L , mysql.db , mysql.opts)
+//	mysql.RUnlock()
+//	return ret
+//}
+//
+//func (mysql *luaMySQL) Command(L *lua.LState) int {
+//	mysql.RLock()
+//	ret := command(L , mysql.db)
+//	mysql.RUnlock()
+//	return ret
+//}
+
 func (mysql *luaMySQL) Stmt(L *lua.LState)    int {
 	mysql.RLock()
 	ret := newLuaStmt(L , mysql.db)

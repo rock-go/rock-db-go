@@ -75,7 +75,7 @@ func (pg *luaPG) Stop(L *lua.LState) int {
 }
 
 
-func (pg *luaPG) Query(L *lua.LState)   int { return query(L , pg.db , pg.opts) }
-func (pg *luaPG) Exec(L *lua.LState)    int { return exec(L , pg.db , pg.opts)  }
-func (pg *luaPG) Command(L *lua.LState) int { return command(L , pg.db)            }
+//func (pg *luaPG) Query(L *lua.LState)   int { return query(L , pg.db , pg.opts) }
+//func (pg *luaPG) Exec(L *lua.LState)    int { return exec(L , pg.db , pg.opts)  }
+//func (pg *luaPG) Command(L *lua.LState) int { return command(L , pg.db)            }
 func (pg *luaPG) Stmt(L *lua.LState)    int { return newLuaStmt(L , pg.db)         }

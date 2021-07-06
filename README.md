@@ -13,15 +13,6 @@
     }
 ```
 
-## 查询 *.Query(string)
-直接查询
-```lua
-    local r , err = mysql.Query("select * from admin")
-    for k , v in pairs(r.row) do
-        --todo
-    end
-```
-
 ## 模板 *.Stmt(string)
 模板查询
 ```lua
@@ -32,11 +23,35 @@
     --err
 ```
 
-## 执行 *.Exec(string)
+## 查询 rows = stmt.Query(string)
+直接查询
+```lua
+    local stmt = mysql.Stmt("select * from admin where 1=?")
+    local rows = mysql.Query('1')
+    rows.try_catch() --判断异常
+    
+    --遍历数据
+    rows.pairs(function(i , row , stop) -- i:索引,row:单条数据 stop:函数
+        if i == 1 then
+            print(row.field)    
+        end
+        
+        if row.name == "admin" then
+            return stop()    
+        end
+        
+    end)
+```
+
+
+## 执行 stmt.Exec(string)
 其他语句执行
 ```lua
+    local stmt = mysql.Stmt("insert into t values(?)")
+
     local _ , err = mysql.Exec("create table t (id int)")
 
     local r , err = mysql.Exec("insert into t values(1)")
-    print(r.rows_affected)
+    print(r.affected)
+    print(r.id)
 ```
